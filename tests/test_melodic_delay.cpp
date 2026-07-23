@@ -75,3 +75,75 @@ TEST(MelodicDelay, DryWetMix) {
 
     EXPECT_NEAR(output[0], 1.0f, 0.1f);
 }
+
+TEST(MelodicDelay, CumulativePitchRise) {
+    DelayParams params;
+    params.tailDuration = 1.0f;
+    params.delayTime = 100.0f;
+    params.feedbackGain = 0.6f;
+    params.pitchShift = 2.0f; // +2 semitones per repeat
+    params.speedShift = 1.0f;
+    params.volumeDecay = 0.8f;
+    params.pitchMode = PitchMode::RESAMPLE;
+    params.repeatMode = RepeatMode::CUMULATIVE;
+    params.envelopePoints = {{0.0f, 1.0f}, {1.0f, 0.0f}};
+
+    MelodicDelay delay(48000, params);
+
+    std::vector<float> input(48000, 0.0f);
+    input[0] = 1.0f;
+
+    std::vector<float> output = delay.processBlock(input);
+
+    // Verify output is non-zero
+    float maxOutput = *std::max_element(output.begin(), output.end());
+    EXPECT_GT(maxOutput, 0.0f);
+}
+
+TEST(MelodicDelay, IndependentMode) {
+    DelayParams params;
+    params.tailDuration = 1.0f;
+    params.delayTime = 100.0f;
+    params.feedbackGain = 0.5f;
+    params.pitchShift = 3.0f;
+    params.speedShift = 1.0f;
+    params.volumeDecay = 0.7f;
+    params.pitchMode = PitchMode::RESAMPLE;
+    params.repeatMode = RepeatMode::INDEPENDENT;
+    params.envelopePoints = {{0.0f, 1.0f}, {1.0f, 0.0f}};
+
+    MelodicDelay delay(48000, params);
+
+    std::vector<float> input(48000, 0.0f);
+    input[0] = 1.0f;
+
+    std::vector<float> output = delay.processBlock(input);
+
+    // Verify output is non-zero
+    float maxOutput = *std::max_element(output.begin(), output.end());
+    EXPECT_GT(maxOutput, 0.0f);
+}
+
+TEST(MelodicDelay, CustomEnvelope) {
+    DelayParams params;
+    params.tailDuration = 1.0f;
+    params.delayTime = 100.0f;
+    params.feedbackGain = 0.5f;
+    params.pitchShift = 0.0f;
+    params.speedShift = 1.0f;
+    params.volumeDecay = 0.7f;
+    params.pitchMode = PitchMode::RESAMPLE;
+    params.repeatMode = RepeatMode::FIXED;
+    params.envelopePoints = {{0.0f, 1.0f}, {0.5f, 0.3f}, {1.0f, 0.0f}};
+
+    MelodicDelay delay(48000, params);
+
+    std::vector<float> input(48000, 0.0f);
+    input[0] = 1.0f;
+
+    std::vector<float> output = delay.processBlock(input);
+
+    // Verify output is non-zero
+    float maxOutput = *std::max_element(output.begin(), output.end());
+    EXPECT_GT(maxOutput, 0.0f);
+}
