@@ -23,4 +23,13 @@ private:
     size_t writePos_ = 0;
 
     float processResample(float input, float pitchShift, float speedShift);
+    float processIndependent(float input, float pitchShift);
+
+    static constexpr int FFT_SIZE = 2048;
+    static constexpr int HOP_SIZE = 512;
+    std::vector<float> inputBuffer_;
+    size_t inputPos_ = 0;
+    std::vector<float> outputBuffer_;
+    size_t outputReadPos_ = 0;
+    size_t outputWritePos_ = 0;
 };
