@@ -37,11 +37,11 @@ float RingBuffer::interpolateLagrange(size_t pos, float frac) const {
     float p3 = at(2);
 
     float t = frac;
-    float t2 = t * t;
-
-    return (-p0 * t * (1-t) * (1-t) + p1 * (1-t) * (1-t) * (2+t)
-            + p2 * t * (2-3*t+t2) - p3 * t2 * (1-t)) * 0.5f +
-           (p1 + p2) * 0.5f;
+    float l0 = -t * (t - 1.0f) * (t - 2.0f) / 6.0f;
+    float l1 = (t + 1.0f) * (t - 1.0f) * (t - 2.0f) / 2.0f;
+    float l2 = -(t + 1.0f) * t * (t - 2.0f) / 2.0f;
+    float l3 = (t + 1.0f) * t * (t - 1.0f) / 6.0f;
+    return p0 * l0 + p1 * l1 + p2 * l2 + p3 * l3;
 }
 
 void RingBuffer::reset() {

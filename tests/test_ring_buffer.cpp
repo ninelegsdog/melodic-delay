@@ -48,3 +48,15 @@ TEST(RingBuffer, ReadWithInterpolation) {
     EXPECT_GT(read, 0.0f);
     EXPECT_LT(read, 1.0f);
 }
+
+TEST(RingBuffer, LagrangeAccuracy) {
+    RingBuffer buf(1024);
+    // Set up 4 known samples so read(0.5) lands between them correctly
+    buf.write(0.0f);
+    buf.write(0.0f);
+    buf.write(1.0f);
+    buf.write(0.0f);
+    // Lagrange interpolation at t=0.5 with p1=1.0, others=0.0 → 0.5625
+    float read = buf.read(0.5f);
+    EXPECT_NEAR(read, 0.5625f, 0.01f);
+}
