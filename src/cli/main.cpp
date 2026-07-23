@@ -109,12 +109,22 @@ int main(int argc, char* argv[]) {
     drwav_uninit(&wav);
 
     MelodicDelay delay(sampleRate, params);
-    std::vector<float> outputSamples(inputSamples.size());
+    size_t tailSamples = static_cast<size_t>(params.tailDuration * sampleRate);
+    size_t outputSize = inputSamples.size() + tailSamples * channels;
+    std::vector<float> outputSamples(outputSize, 0.0f);
 
     for (int ch = 0; ch < channels; ch++) {
         delay.reset();
+        // Process input
         for (size_t i = ch; i < inputSamples.size(); i += channels) {
             outputSamples[i] = delay.process(inputSamples[i]);
+        }
+        // Flush tail with zeros
+        for (size_t i = 0; i < tailSamples; i++) {
+            size_t idx = inputSamples.size() + i * channels + ch;
+            if (idx < outputSize) {
+                outputSamples[idx] = delay.process(0.0f);
+            }
         }
     }
 

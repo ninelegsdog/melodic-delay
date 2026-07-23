@@ -98,7 +98,7 @@ float PitchShifter::processIndependent(float input, float pitchShift) {
 
     // FFT
     kiss_fft_cpx timeData[FFT_SIZE];
-    kiss_fft_cpx freqData[FFT_SIZE / 2 + 1];
+    kiss_fft_cpx freqData[FFT_SIZE];
 
     for (int i = 0; i < FFT_SIZE; i++) {
         timeData[i].r = windowedInput[i];
@@ -114,10 +114,10 @@ float PitchShifter::processIndependent(float input, float pitchShift) {
     }
 
     // Phase difference
-    float ratio = std::pow(2.0f, pitchShift / 12.0f);
+    float ratio = std::pow(2.0f, std::clamp(pitchShift, -24.0f, 24.0f) / 12.0f);
 
     // Process spectrum for pitch shifting
-    kiss_fft_cpx outputFreqData[FFT_SIZE / 2 + 1];
+    kiss_fft_cpx outputFreqData[FFT_SIZE];
     memset(outputFreqData, 0, sizeof(outputFreqData));
 
     for (int i = 0; i <= FFT_SIZE / 2; i++) {
@@ -138,7 +138,7 @@ float PitchShifter::processIndependent(float input, float pitchShift) {
 
         // Map to new frequency bin
         int newBin = static_cast<int>(std::round(i * ratio));
-        if (newBin <= FFT_SIZE / 2) {
+        if (newBin >= 0 && newBin <= FFT_SIZE / 2) {
             float mag = magnitude_[i];
             float phase = phaseAccumulator_[newBin];
             outputFreqData[newBin].r += mag * std::cos(phase);
@@ -165,6 +165,7 @@ float PitchShifter::processIndependent(float input, float pitchShift) {
     outputWritePos_ = (outputWritePos_ + HOP_SIZE) % (FFT_SIZE * 2);
 
     float out = outputBuffer_[outputReadPos_];
+    outputBuffer_[outputReadPos_] = 0.0f;
     outputReadPos_ = (outputReadPos_ + 1) % (FFT_SIZE * 2);
 
     return out;
