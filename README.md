@@ -7,8 +7,9 @@ A C++ audio delay effect with melodic echo, pitch shifting, and custom envelope 
 - **Melodic echo:** Each repetition can change pitch, speed, and volume independently
 - **Extended tail:** 10-30 second delay tails with efficient memory usage
 - **Flexible control:** Custom envelope curves via spline interpolation
-- **Dual pitch modes:** Resampling (tape-style) and independent phase vocoder
+- **Dual pitch modes:** Resampling (tape-style) and independent phase vocoder (FFT-based)
 - **Three repeat modes:** Cumulative, fixed, and independent parameter application
+- **VST plugin stub:** Ready for JUCE framework integration
 
 ## Building
 
@@ -57,10 +58,15 @@ cd build && ctest --output-on-failure
 ## Architecture
 
 - **RingBuffer:** Circular buffer with Lagrange interpolation
-- **PitchShifter:** Resampling and phase vocoder modes
+- **PitchShifter:** Resampling and FFT-based phase vocoder using KissFFT
 - **Envelope:** Catmull-Rom spline through control points
 - **MelodicDelay:** Core DSP engine with feedback loop
+- **VST Plugin:** JUCE-ready plugin stub with parameter management
 
 ## VST Support
 
-VST plugin support is planned for future implementation using JUCE framework.
+VST plugin stub is included with parameter management ready for JUCE framework integration. The plugin supports:
+- 7 configurable parameters (tail duration, delay time, feedback, pitch shift, speed shift, volume decay, mix)
+- Stereo audio processing
+- Real-time parameter changes
+- Standard VST parameter naming and ranges
