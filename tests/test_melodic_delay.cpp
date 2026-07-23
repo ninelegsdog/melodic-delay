@@ -147,3 +147,57 @@ TEST(MelodicDelay, CustomEnvelope) {
     float maxOutput = *std::max_element(output.begin(), output.end());
     EXPECT_GT(maxOutput, 0.0f);
 }
+
+TEST(MelodicDelay, LongTail) {
+    DelayParams params;
+    params.tailDuration = 10.0f;
+    params.delayTime = 500.0f;
+    params.feedbackGain = 0.7f;
+    params.pitchShift = 0.0f;
+    params.speedShift = 1.0f;
+    params.volumeDecay = 0.8f;
+    params.pitchMode = PitchMode::RESAMPLE;
+    params.repeatMode = RepeatMode::FIXED;
+    params.envelopePoints = {{0.0f, 1.0f}, {10.0f, 0.0f}};
+    
+    MelodicDelay delay(48000, params);
+    
+    // Process 1 second of impulse
+    std::vector<float> input(48000, 0.0f);
+    input[0] = 1.0f;
+    delay.processBlock(input);
+    
+    // Process 10 more seconds of silence to let tail fade
+    std::vector<float> silence(480000, 0.0f);
+    std::vector<float> output = delay.processBlock(silence);
+    
+    // Check that tail decays
+    float maxFirst = *std::max_element(output.begin(), output.begin() + 48000);
+    float maxLast = *std::max_element(output.begin() + 432000, output.end());
+    
+    EXPECT_GT(maxFirst, maxLast);
+}
+
+TEST(MelodicDelay, PitchShiftCumulative) {
+    DelayParams params;
+    params.tailDuration = 1.0f;
+    params.delayTime = 100.0f;
+    params.feedbackGain = 0.5f;
+    params.pitchShift = 7.0f; // Perfect fifth
+    params.speedShift = 1.0f;
+    params.volumeDecay = 0.7f;
+    params.pitchMode = PitchMode::RESAMPLE;
+    params.repeatMode = RepeatMode::CUMULATIVE;
+    params.envelopePoints = {{0.0f, 1.0f}, {1.0f, 0.0f}};
+    
+    MelodicDelay delay(48000, params);
+    
+    std::vector<float> input(48000, 0.0f);
+    input[0] = 1.0f;
+    
+    std::vector<float> output = delay.processBlock(input);
+    
+    // Verify output is non-zero
+    float maxOutput = *std::max_element(output.begin(), output.end());
+    EXPECT_GT(maxOutput, 0.0f);
+}
